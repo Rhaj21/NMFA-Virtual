@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artwork Detail | NMFA Virtual Tour</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
+
+        :root {
+            --bg-dark: #1a1816; 
+            --bg-panel: #24201d; 
+            --text-main: #f0ece1;
+            --text-muted: #a8a296;
+            --accent-gold: #c8aa6e;
+            --frame-outer: #150f0b;
+            --nav-bg: rgba(26, 24, 22, 0.95);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lora', serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        body.no-scroll { overflow: hidden; }
+
+        h1, h2, h3, h4, .nav-logo { font-family: 'Cinzel', serif; font-weight: 600; }
+        a { text-decoration: none; color: inherit; }
+
+        /* Loader Styles */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-dark); z-index: 9999; display: flex;
+            justify-content: center; align-items: center; transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid rgba(200, 170, 110, 0.2);
+            border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-hidden { opacity: 0; visibility: hidden; }
+
+        /* Navigation */
+        nav {
+            position: fixed; top: 0; width: 100%; height: 75px; 
+            background: var(--nav-bg); backdrop-filter: blur(10px);
+            z-index: 1000; box-shadow: 0 2px 20px rgba(0,0,0,0.5);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 5%;
+        }
+
+        .nav-logo { font-size: 1.2rem; letter-spacing: 1px; color: var(--accent-gold); z-index: 1002; position: relative;}
+        .burger { display: none; cursor: pointer; z-index: 1002; position: relative; }
+        .burger div { width: 25px; height: 2px; background-color: var(--text-main); margin: 5px; transition: 0.3s ease; }
+
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links li a { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; transition: var(--transition); color: var(--text-main); }
+
+        /* Detail Layout */
+        .detail-container {
+            max-width: 1400px; margin: 100px auto 40px; padding: 0 5%;
+            display: flex; gap: 3rem; align-items: flex-start; width: 100%;
+        }
+
+        .artwork-display { 
+            flex: 1; position: sticky; top: 100px; width: 100%; 
+            display: flex; justify-content: center; align-items: flex-start;
+        }
+
+        .art-frame-large {
+            background: #f4f0e6; padding: 20px; border: 12px solid var(--frame-outer);
+            outline: 3px solid var(--accent-gold); outline-offset: -12px;
+            box-shadow: 15px 20px 40px rgba(0,0,0,0.8); border-radius: 2px; 
+            display: inline-flex; justify-content: center; align-items: center;
+            max-width: 100%; box-sizing: border-box;
+        }
+
+        /* Image Loading Animation Wrapper */
+        .img-wrapper {
+            position: relative; display: flex; justify-content: center; align-items: center;
+            max-width: 100%; background: transparent; transition: var(--transition);
+        }
+        
+        .img-wrapper.loading {
+            min-width: 250px; 
+            min-height: 300px;
+        }
+
+        .img-wrapper.loading::before {
+            content: ""; position: absolute; width: 40px; height: 40px;
+            border: 3px solid rgba(200, 170, 110, 0.2); border-top-color: var(--accent-gold);
+            border-radius: 50%; animation: spin 1s linear infinite;
+        }
+
+        .img-wrapper img {
+            display: block; width: auto; max-width: 100%; height: auto; max-height: 75vh; 
+            object-fit: contain; margin: 0 auto; opacity: 1; transition: opacity 0.5s ease;
+        }
+
+        .img-wrapper.loading img { opacity: 0; }
+
+        /* Right Side: Information */
+        .artwork-info {
+            flex: 1; background: var(--bg-panel); padding: 2.5rem; border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-left: 3px solid var(--accent-gold); width: 100%;
+        }
+
+        .artwork-info h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); color: var(--accent-gold); line-height: 1.2; margin-bottom: 0.5rem; }
+        .alt-title { font-size: clamp(0.9rem, 2vw, 1.1rem); color: var(--text-muted); font-style: italic; margin-bottom: 1.5rem; display: block; }
+        
+        .meta-data {
+            font-family: 'Cinzel', serif; font-size: clamp(0.85rem, 2vw, 1rem);
+            border-top: 1px solid rgba(200, 170, 110, 0.3); border-bottom: 1px solid rgba(200, 170, 110, 0.3);
+            padding: 1rem 0; margin-bottom: 2rem;
+        }
+        .meta-data p { margin: 0.3rem 0; color: #d4cfc5; }
+        .meta-data span { color: var(--accent-gold); font-weight: 600; }
+
+        .content-section { margin-bottom: 2rem; }
+        .content-section h3 { color: var(--text-main); font-size: clamp(1rem, 2.5vw, 1.2rem); margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 1px; font-family: 'Lora', serif; }
+        .content-section p { color: var(--text-muted); font-size: clamp(0.95rem, 2.5vw, 1.05rem); margin-bottom: 1rem; text-align: left; }
+
+        .btn-back {
+            display: inline-flex; align-items: center; padding: 10px 20px; background-color: transparent;
+            color: var(--text-main); font-family: 'Cinzel', serif; text-transform: uppercase;
+            letter-spacing: 2px; font-size: 0.85rem; border: 1px solid var(--text-muted);
+            transition: var(--transition); cursor: pointer; margin-top: 1rem; text-align: center;
+        }
+
+        .error-msg { text-align: center; padding: 100px 5%; font-size: 1.2rem; color: var(--accent-gold); }
+
+        /* Only apply hover effects on devices that support hover */
+        @media (hover: hover) {
+            .nav-links li a:hover { color: var(--accent-gold); }
+            .btn-back:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+        }
+
+        /* Mobile Responsiveness */
+        @media screen and (max-width: 992px) {
+            .detail-container { flex-direction: column; gap: 2rem; padding: 0 5%; }
+            .artwork-display { position: relative; top: 0; align-items: center; }
+            .art-frame-large { padding: 10px; border-width: 8px; outline-offset: -8px; }
+            .img-wrapper.loading { min-width: 200px; min-height: 200px; }
+            .img-wrapper img { max-height: 55vh; }
+            .artwork-info { padding: 1.5rem; }
+        }
+
+        @media screen and (max-width: 768px) {
+            .nav-links {
+                position: fixed; right: 0px; height: calc(100vh - 75px); top: 75px; 
+                background-color: var(--nav-bg); display: flex; flex-direction: column;
+                align-items: center; justify-content: center; width: 100%;
+                transform: translateX(100%); transition: transform 0.4s ease-in; z-index: 999;
+            }
+            .nav-links li { opacity: 0; margin: 1.5rem 0; }
+            .nav-links li a { font-size: 1.5rem; }
+            .burger { display: block; }
+            .nav-active { transform: translateX(0%); }
+            .nav-active li { opacity: 1; transition: opacity 0.5s ease 0.3s; }
+            .toggle .line1 { transform: rotate(-45deg) translate(-5px, 5px); }
+            .toggle .line2 { opacity: 0; }
+            .toggle .line3 { transform: rotate(45deg) translate(-5px, -5px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <nav>
+        <div class="nav-logo">NMFA Detail</div>
+        <div class="burger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="index.html#members">Members</a></li>
+            <li><a href="index.html#credits">Credits</a></li>
+            <li><a href="finearts.html">Gallery</a></li>
+        </ul>
+    </nav>
+
+    <div id="dynamic-content"></div>
+
+    <script>
+        const burger = document.querySelector('.burger');
+        const nav = document.querySelector('.nav-links');
+        const navLinks = document.querySelectorAll('.nav-links li');
+        const body = document.body;
+        
+        burger.addEventListener('click', () => {
+            nav.classList.toggle('nav-active');
+            burger.classList.toggle('toggle');
+            body.classList.toggle('no-scroll');
+        });
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if(nav.classList.contains('nav-active')){
+                    nav.classList.remove('nav-active');
+                    burger.classList.remove('toggle');
+                    body.classList.remove('no-scroll');
+                }
+            });
+        });
+
+        const paintingDatabase = [
+            { id: 1, title: "The Assassination of Governor Bustamante", altTitle: "El Asesinato del Gobernador Bustamante / La Iglesia contra el Estado", artist: "Félix Resurrección Hidalgo", year: "1898", medium: "Oil on canvas", img: "assets/TAOGB.jpg", background: "This monumental piece illustrates the violent assassination of Spanish Governor-General Fernando Manuel de Bustillo Bustamante y Rueda by a mob of friars in 1719. It was painted in the waning years of the Spanish empire in the Philippines.", significance: "The painting is a powerful political allegory and critique of the unchecked power and abuses of the friars during the colonial era. It boldly visualizes the historical clash between church and state.", importance: "Winning a gold medal at the St. Louis Exposition in 1904, it solidified Hidalgo's standing as a master of grand historical narrative and classical composition.", notice: "Observe the dynamic diagonal composition of the stairs, creating a dramatic sense of falling. The chaotic movement of the figures contrasts sharply with the dramatic lighting, pulling your eyes toward the tragic center." }, 
+            { id: 2, title: "Spoliarium", altTitle: "None", artist: "Juan Luna", year: "1884", medium: "Oil on canvas", img: "assets/spoliarium.jpg", background: "Submitted to the Exposición Nacional de Bellas Artes in Madrid, this colossal painting depicts the basement of the Roman Colosseum where fallen gladiators are unceremoniously stripped of their armor and weapons.", significance: "Beyond its Roman subject matter, it is widely interpreted as an allegory for the suffering of the Filipino people under Spanish colonial rule—robbed of dignity and life.", importance: "Winning the First Gold Medal in Madrid, it proved to the world that Filipinos could equal or surpass European masters, fueling the nationalistic pride of the Propagandists like Jose Rizal.", notice: "Notice the stark division of the canvas: the violent, bloody action on the left dragging the bodies, contrasted with the quiet, mournful figures in the shadows on the right, creating a powerful emotional duality." }, 
+            { id: 3, title: "The Parisian Life", altTitle: "Interior d'un Café / Inside a Café", artist: "Juan Luna", year: "1892", medium: "Oil on canvas", img: "assets/TPL.jpg", background: "Painted during Luna's stay in Paris, it captures a seemingly ordinary scene inside a cafe. A stylishly dressed woman sits alone while three men observe her from the background.", significance: "The three men are known to be Luna himself, Jose Rizal, and Ariston Bautista Lin. Some historians interpret the woman—whose shape mirrors the Philippine archipelago—as a symbol of the motherland under the gaze of foreign powers, or the relaxed European environment that allowed the reformists to strategize.", importance: "It is a rare transition piece showcasing Luna's shift towards Impressionism, stepping away from dark, heavy academic historical paintings.", notice: "Look at the loose, impressionistic brushstrokes compared to Luna's earlier works. Notice how the perspective lines and the gazes of the three men in the background all lead toward the solitary woman." }, 
+            { id: 4, title: "Portrait of a Lady", altTitle: "Mi Novia", artist: "Juan Luna", year: "Late 1880s", medium: "Oil on canvas", img: "assets/POAL.jpg", background: "This beautiful, intimate portrait is widely believed to depict Paz Pardo de Tavera, Luna's wife. It captures her in a moment of quiet grace before the tragic events that would later unfold in their marriage.", significance: "It represents the personal and domestic side of the artist, far removed from his grand political statements. However, it carries a heavy historical weight due to the tragic crime of passion associated with Luna's family life.", importance: "The piece highlights Luna's incredible versatility, proving his mastery not only in large-scale dramatic scenes but also in delicate, emotive portraiture.", notice: "Take note of the soft, luminous treatment of the subject's skin and the gentle rendering of the fabric, contrasting with the dark, moody background to make the figure glow." }, 
+            { id: 5, title: "Sabel", altTitle: "None", artist: "Benedicto Cabrera (BenCab)", year: "Various (Series)", medium: "Mixed media / Acrylic on canvas", img: "assets/sabel.jpg", background: "Inspired by a real-life scavenger the artist observed in the Bambang district of Manila in the 1960s, wrapped in plastic sheets to protect herself from the elements.", significance: "Sabel transcended her origins to become a powerful, enduring symbol of the marginalized Filipino, representing poverty, displacement, and survival in the modern urban landscape.", importance: "She is BenCab's signature muse. The thematic evolution of Sabel across decades mirrors the socio-political changes in Philippine society, securing BenCab's place as a National Artist.", notice: "Observe the fluid, abstract lines of the drapery that envelop the figure. The sweeping, energetic strokes suggest both movement and confinement, turning a plastic sheet into an elegant, almost theatrical garment." }, 
+            { id: 6, title: "La Barca de Aqueronte", altTitle: "The Boat of Charon", artist: "Félix Resurrección Hidalgo", year: "1887", medium: "Oil on canvas", img: "assets/LBDA.jpg", background: "Drawing inspiration from Dante Alighieri’s 'Inferno', this chilling painting depicts Charon, the ferryman of Hades, transporting damned souls across the river Styx into the underworld.", significance: "It showcases a shift towards darker, romantic, and mythological themes, exploring the macabre and the sublime, away from direct Philippine political allegory.", importance: "Winning a Silver Medal at the Exposición General de las Filipinas in Madrid, it reaffirmed Hidalgo’s status as a master painter alongside Luna, proving Filipino competence in classic European literary themes.", notice: "Pay close attention to the stark contrast between the pale, writhing bodies of the desperate souls and the dark, imposing, shadowed figure of Charon steering the boat into the abyss." },
+            { id: 7, title: "Una Bulaqueña", altTitle: "A Woman from Bulacan", artist: "Juan Luna", year: "1895", medium: "Oil on canvas", img: "assets/UB.jpg", background: "A refined portrait by Juan Luna of a woman from Bulacan dressed in traditional Filipino attire. It serves as an exquisite character study representing the Filipina aesthetic.", significance: "The painting is widely admired for its graceful realism, delicate detail, and quiet elegance, reflecting Luna’s mastery in portraiture and capturing the essence of local heritage.", importance: "It highlights Luna's immense versatility and ability to pivot from immense, violent historical narratives (like the Spoliarium) to capturing intimate, cultural identities.", notice: "Observe the delicate detailing of the sheer fabric of her traditional dress, contrasting perfectly with the warmth and quiet confidence of her facial expression." }
+        ];
+
+        function loadArtworkDetails() {
+            const params = new URLSearchParams(window.location.search);
+            const id = parseInt(params.get('id'));
+            const contentDiv = document.getElementById('dynamic-content');
+
+            if (!id || isNaN(id)) {
+                contentDiv.innerHTML = `<div class="error-msg">Artwork not found. Please return to the <a href="finearts.html" style="text-decoration: underline; color: #fff;">Gallery</a>.</div>`;
+                return;
+            }
+
+            const painting = paintingDatabase.find(p => p.id === id);
+
+            if (painting) {
+                // Notice the back button now passes ?slide=${painting.id}
+                contentDiv.innerHTML = `
+                    <div class="detail-container">
+                        <div class="artwork-display">
+                            <div class="art-frame-large">
+                                <div class="img-wrapper loading">
+                                    <img src="${painting.img}" alt="${painting.title}" onload="this.parentElement.classList.remove('loading')">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="artwork-info">
+                            <h1>${painting.title}</h1>
+                            ${painting.altTitle !== "None" ? `<span class="alt-title">Also known as: ${painting.altTitle}</span>` : ''}
+                            
+                            <div class="meta-data">
+                                <p><span>Artist:</span> ${painting.artist}</p>
+                                <p><span>Year:</span> ${painting.year}</p>
+                                <p><span>Medium:</span> ${painting.medium}</p>
+                            </div>
+
+                            <div class="content-section">
+                                <h3>Historical Background</h3>
+                                <p>${painting.background}</p>
+                            </div>
+
+                            <div class="content-section">
+                                <h3>Cultural Significance</h3>
+                                <p>${painting.significance}</p>
+                            </div>
+
+                            <div class="content-section">
+                                <h3>Importance in Art History</h3>
+                                <p>${painting.importance}</p>
+                            </div>
+
+                            <div class="content-section">
+                                <h3>What to Notice</h3>
+                                <p>${painting.notice}</p>
+                            </div>
+
+                            <a href="finearts.html?slide=${painting.id}" class="btn-back">&#10094; Back to Gallery Wall</a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                contentDiv.innerHTML = `<div class="error-msg">Artwork not found. Please return to the <a href="finearts.html" style="text-decoration: underline; color: #fff;">Gallery</a>.</div>`;
+            }
+        }
+
+        window.addEventListener('load', () => {
+            loadArtworkDetails();
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('loader-hidden');
+            }, 400);
+        });
+    </script>
+</body>
+</html>
