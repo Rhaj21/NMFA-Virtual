@@ -209,6 +209,29 @@
             color: var(--text-light);
             padding: 0 15px;
         }
+        
+        /* New Disclaimer Styles */
+        .disclaimer {
+            margin-top: 3rem;
+            padding: 1.5rem 2rem;
+            background-color: var(--card-bg);
+            border-left: 5px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            box-shadow: var(--shadow);
+            text-align: left;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            font-style: italic;
+        }
+
+        .disclaimer p {
+            margin-bottom: 0.5rem;
+            padding: 0;
+        }
+
+        .disclaimer p:last-child {
+            margin-bottom: 0;
+        }
 
         /* Members Section */
         .members-grid {
@@ -303,6 +326,8 @@
             section { padding: 4rem 5%; }
             .section-title { font-size: 1.8rem; margin-bottom: 2rem; }
             .btn { padding: 10px 20px; font-size: 0.8rem; }
+            
+            .disclaimer { padding: 1rem 1.2rem; }
         }
     </style>
 </head>
@@ -347,6 +372,11 @@
             <p>Whether you are encountering these iconic works for the first time or revisiting familiar favorites, this digital experience is designed to inspire curiosity, reflection, and appreciation for the beauty preserved within these walls.</p>
             <br>
             <p>Step in, explore, and let each featured piece connect you with the history, culture, and creativity that define our artistic heritage.</p>
+            
+            <div class="disclaimer">
+                <p><strong>Disclaimer:</strong> This is an educational project and is not affiliated with the National Museum of the Philippines.</p>
+                <p>Some images used are not owned by the developer. Proper credits are given to their respective owners. All rights belong to their respective creators.</p>
+            </div>
         </div>
     </section>
 
